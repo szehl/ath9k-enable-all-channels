@@ -1,0 +1,1 @@
+# ath9k-enable-all-channels
