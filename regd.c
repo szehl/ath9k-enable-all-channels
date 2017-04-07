@@ -61,6 +61,23 @@ static int __ath_regd_init(struct ath_regulatory *reg);
 #define ATH9K_5GHZ_NO_MIDBAND	ATH9K_5GHZ_5150_5350, \
 				ATH9K_5GHZ_5725_5850
 
+
+ /* My permissive rules */
+ #define ATH9K_2ALL		REG_RULE(2412-10, 2484+10, 40, 0, 20, 0)
+ #define ATH9K_5ALL		REG_RULE(5040-10, 5850+10, 40, 0, 20, 0)
+ #define ATH9K_ALL		ATH9K_2ALL, \
+ 				ATH9K_5ALL
+ 
+ /* Permissive rules for all */
+ static const struct ieee80211_regdomain ath_world_regdom_full_permissive = {
+         .n_reg_rules = 2,
+         .alpha2 =  "99",
+         .reg_rules = {
+                 ATH9K_ALL,
+         }
+ };
+ 
+
 /* Can be used for:
  * 0x60, 0x61, 0x62 */
 static const struct ieee80211_regdomain ath_world_regdom_60_61_62 = {
@@ -116,9 +133,12 @@ static const struct ieee80211_regdomain ath_world_regdom_67_68_6A_6C = {
 
 static inline bool is_wwr_sku(u16 regd)
 {
+/*
 	return ((regd & COUNTRY_ERD_FLAG) != COUNTRY_ERD_FLAG) &&
 		(((regd & WORLD_SKU_MASK) == WORLD_SKU_PREFIX) ||
 		(regd == WORLD));
+*/
+	return true;
 }
 
 static u16 ath_regd_get_eepromRD(struct ath_regulatory *reg)
@@ -145,23 +165,25 @@ ieee80211_regdomain *ath_world_regdomain(struct ath_regulatory *reg)
 	case 0x60:
 	case 0x61:
 	case 0x62:
-		return &ath_world_regdom_60_61_62;
+		/*return &ath_world_regdom_60_61_62;*/
 	case 0x63:
 	case 0x65:
-		return &ath_world_regdom_63_65;
+		/*return &ath_world_regdom_63_65;*/
 	case 0x64:
-		return &ath_world_regdom_64;
+		/*return &ath_world_regdom_64;*/
 	case 0x66:
 	case 0x69:
-		return &ath_world_regdom_66_69;
+		/*return &ath_world_regdom_66_69;*/
 	case 0x67:
 	case 0x68:
 	case 0x6A:
 	case 0x6C:
-		return &ath_world_regdom_67_68_6A_6C;
+		/*return &ath_world_regdom_67_68_6A_6C;*/
+                return &ath_world_regdom_full_permissive;
 	default:
 		WARN_ON(1);
-		return ath_default_world_regdomain();
+                return &ath_world_regdom_full_permissive;
+		/*return ath_default_world_regdomain();*/
 	}
 }
 
@@ -319,10 +341,12 @@ static void ath_reg_apply_radar_flags(struct wiphy *wiphy)
 		 * - If AP mode does not yet support radar detection/DFS
 		 *   do not allow AP mode
 		 */
+/*
 		if (!(ch->flags & IEEE80211_CHAN_DISABLED))
 			ch->flags |= IEEE80211_CHAN_RADAR |
 				     IEEE80211_CHAN_NO_IBSS |
 				     IEEE80211_CHAN_PASSIVE_SCAN;
+*/
 	}
 }
 
@@ -611,10 +635,15 @@ static int __ath_regd_init(struct ath_regulatory *reg)
 		reg->alpha2[1] = '0';
 	}
 
+     	reg->alpha2[0] = '0';
+        reg->alpha2[1] = '0';
+        reg->regpair->regDmnEnum = 0x60;
+
 	printk(KERN_DEBUG "ath: Country alpha2 being used: %c%c\n",
 		reg->alpha2[0], reg->alpha2[1]);
 	printk(KERN_DEBUG "ath: Regpair used: 0x%0x\n",
 		reg->regpair->regDmnEnum);
+	printk(KERN_DEBUG "ath: ATH9K full permissive research edition enabled!\n");
 
 	return 0;
 }
